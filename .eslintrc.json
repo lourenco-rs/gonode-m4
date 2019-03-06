@@ -6,8 +6,8 @@
   },
   "extends": "standard",
   "globals": {
-    "Atomics": "readonly",
-    "SharedArrayBuffer": "readonly",
+    "Atomics": "readable",
+    "SharedArrayBuffer": "readable",
     "use": true
   },
   "parserOptions": {
