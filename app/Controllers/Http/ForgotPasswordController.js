@@ -1,7 +1,10 @@
 'use strict'
 
 const crypto = require('crypto')
+const moment = require('moment')
+
 const User = use('App/Models/User')
+const Mail = use('Mail')
 
 class ForgotPasswordController {
   async store ({ request, response }) {
@@ -12,11 +15,60 @@ class ForgotPasswordController {
       user.token = crypto.randomBytes(10).toString('hex')
       user.token_created_at = new Date()
 
+      await Mail.send(
+        ['emails.forgot_password', 'emails.forgot_password-text'],
+        {
+          email,
+          token: user.token,
+          link: `${request.input('redirect_url')}?token=${user.token}`
+        },
+        message => {
+          message
+            .to(user.email)
+            .from('suporte@meusistema.com', 'Rodrigo | Meu Sistema')
+            .subject('Recuperação de senha')
+        }
+      )
       await user.save()
     } catch (err) {
+      return response.status(err.status).send({
+        error: {
+          message: 'Algo não deu certo, esse e-mail existe?' + err.message
+        }
+      })
+    }
+  }
+
+  async update ({ request, response }) {
+    try {
+      const { token, password } = request.all()
+
+      console.log('estou aki, update, antes do findByOrFail')
+
+      const user = await User.findByOrFail('token', token)
+
+      console.log('depois do findByOrFail - user: ', user.name)
+
+      const tokenExpired = moment()
+        .subtract('2', 'days')
+        .isAfter(user.token_created_at)
+
+      if (tokenExpired) {
+        return response
+          .status(401)
+          .send({ error: { message: 'O token de recuperação está expirado' } })
+      }
+
+      user.token = null
+      user.token_created_at = null
+      user.password = password
+
+      await user.save()
+    } catch (err) {
+      console.log('entrei no catch')
       return response
         .status(err.status)
-        .send({ error: { message: 'Algo não deu certo, esse e-mail existe?' } })
+        .send({ error: { message: 'Algo deu errado ao resetar sua senha' } })
     }
   }
 }
