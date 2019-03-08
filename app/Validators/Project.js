@@ -11,6 +11,10 @@ class Project {
       description: 'required'
     }
   }
+
+  get messages () {
+    return Antl.list('validation')
+  }
 }
 
 module.exports = Project

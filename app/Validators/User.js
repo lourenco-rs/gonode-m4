@@ -1,5 +1,7 @@
 'use strict'
 
+const Antl = use('Antl')
+
 class StoreUser {
   get validateAll () {
     return true
@@ -21,6 +23,9 @@ class StoreUser {
   }
   */
 
+  /*
+  para mensagens não internacionalizadas
+
   get messages () {
     return {
       'username.required': 'Você precisa informar um nome de usuário',
@@ -30,6 +35,11 @@ class StoreUser {
       'email.unique': 'O email informado já existe.',
       'password.required': 'Você precisa informar uma senha'
     }
+  }
+  */
+
+  get messages () {
+    return Antl.list('validation')
   }
 }
 
